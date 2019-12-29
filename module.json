@@ -1,0 +1,13 @@
+{
+  "name": "max-crit",
+  "title": "Max Crit",
+  "description": "crit dice deal max damage",
+  "version": 0.1,
+  "author": "Shawn Milligan",
+  "esmodules": ["max-crit.js"],
+  "minimumCoreVersion": "0.4.0",
+  "systems": ["dnd5e"],
+  "manifest": "https://raw.githubusercontent.com/smilligan93/max-crit-foundry-dnd5e/master/module.json",
+  "download": "https://github.com/smilligan93/max-crit-foundry-dnd5e/archive/master.zip",
+  "url": "https://github.com/smilligan93/max-crit-foundry-dnd5e"
+}
