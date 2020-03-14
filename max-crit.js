@@ -7,9 +7,11 @@ export class CustomDice5e {
     flavor = flavor || title;
     const rollMode = game.settings.get("core", "rollMode");
     let rolled = false;
-    
+
     // Define inner roll function
     const _roll = function(parts, crit, form) {
+      let bonus = form ? form.find('[name="bonus"]').val() : 0;
+
       // Modify the damage formula for critical hits
       if ( crit === true ) {
         let regex = /\d+d\d+/;
@@ -19,7 +21,6 @@ export class CustomDice5e {
             let match = part.match(gRegex);
             match.forEach((m, index) => {
                 let split = m.split('d');
-                console.log(split);
                 if (split.length === 2) {
                   let count = Number(split[0]);
                   let val = Number(split[1]);
@@ -29,21 +30,33 @@ export class CustomDice5e {
             });
           }
         });
+        if (bonus) {
+          let gRegex = /\d+d\d+/g;
+          let match = bonus.match(gRegex);
+          match.forEach((m, index) => {
+              let split = m.split('d');
+              if (split.length === 2) {
+                let count = Number(split[0]);
+                let val = Number(split[1]);
+                bonus += `+${count * val}`;
+              }
+          });
+        }
         flavor = `${title} (Critical)`;
       }
 
+      data['bonus'] = bonus;
+      // Include bonus
       let roll = new Roll(parts.join("+"), data);
     
-      // Include bonus
-      data['bonus'] = form ? form.find('[name="bonus"]').val() : 0;
-    
       // Convert the roll to a chat message
-      rolled = true;
-      return roll.toMessage({
+      roll.toMessage({
         speaker: speaker,
         flavor: flavor,
         rollMode: form ? form.find('[name="rollMode"]').val() : rollMode
       });
+      rolled = true;
+      return roll;
     };
     
     // Modify the roll and handle fast-forwarding
