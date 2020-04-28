@@ -42,7 +42,8 @@ export class CustomDice5e {
       // Modify the damage formula for critical hits
       if ( crit === true ) {
         let regex = /\d+d\d+/;
-        parts.forEach(part => {
+        // don't want to be pushing to the same object we iterate over
+        [...parts].forEach(part => {
           if (regex.test(part)) {
             let gRegex = /\d+d\d+/g;
             let match = part.match(gRegex);
@@ -51,7 +52,13 @@ export class CustomDice5e {
               if (split.length === 2) {
                 let count = Number(split[0]);
                 let val = Number(split[1]);
-                if (index === 0 && actor && actor.getFlag("dnd5e", "savageAttacks")) count += 1;
+                if (index === 0 && actor && actor.getFlag("dnd5e", "savageAttacks")) {
+                  if (game.settings.get('max-crit', 'bonusFeatRolls')) {
+                    count += 1;
+                  } else {
+                    parts.push(`1d${val}`);
+                  }
+                }
                 parts.push(count * val);
               }
             });
@@ -60,12 +67,16 @@ export class CustomDice5e {
         if (bonus) {
           let gRegex = /\d+d\d+/g;
           let match = bonus.match(gRegex);
-          match.forEach((m, index) => {
+          match.forEach(m => {
             let split = m.split('d');
             if (split.length === 2) {
               let count = Number(split[0]);
               let val = Number(split[1]);
-              bonus += `+${count * val}`;
+              if (game.settings.get('max-crit', 'bonusFieldRolls')) {
+                bonus += `+${count * val}`;
+              } else {
+                bonus += `+${count}d${val}`;
+              }
             }
           });
         }
@@ -133,5 +144,23 @@ export class CustomDice5e {
 }
 
 Hooks.on("ready", () => {
-    Dice5e.damageRoll = CustomDice5e.damageRoll;
+  game.settings.register('max-crit', 'bonusFeatRolls', {
+      name: "Maximize Bonus Dice from feats (Savage Attacks)",
+      description: "Include bonus dice from class or racial feats when calculating Max Crit",
+      scope: "world",
+      config: true,
+      type: Boolean,
+      default: true,
+  });
+
+  game.settings.register('max-crit', 'bonusFieldRolls', {
+    name: "Maximize Situational Bonus Dice",
+    description: "Include dice in the situational bonus field of the roll",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true,
+  });
+
+  Dice5e.damageRoll = CustomDice5e.damageRoll;
 });
