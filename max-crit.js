@@ -122,10 +122,12 @@ export async function damageRoll({parts, actor, data, event={}, rollMode=null, t
           if (split.length === 2) {
             let count = Number(split[0]);
             let val = Number(split[1]);
-            if (game.settings.get('max-crit', 'bonusFieldRolls')) {
-              bonus += `+${count * val}`;
-            } else {
-              bonus += `+${count}d${val}`;
+            if (count > 0) {
+              if (game.settings.get('max-crit', 'bonusFieldRolls')) {
+                bonus += `+${count * val}`;
+              } else {
+                bonus += `+${count}d${val}`;
+              }
             }
           }
         });
@@ -134,7 +136,20 @@ export async function damageRoll({parts, actor, data, event={}, rollMode=null, t
       if ( "flags.dnd5e.roll" in messageData ) messageData["flags.dnd5e.roll"].critical = true;
     }
 
-    data['bonus'] = bonus;
+    if (bonus) {
+      data['bonus'] = bonus;
+      console.log(bonus)
+      console.log(data['bonus'])
+    } else {
+      const index = parts.findIndex(p => p === '@bonus');
+      if (index >= 0) parts.splice(index, 1);
+      console.log(parts);
+    }
+
+    // if (!data['bonus']) {
+    //   const index = parts.find(p => p === '@bonus');
+    //   if (index >= 0) parts.splice(index, 1);
+    // }
     // if (!data["bonus"]) parts.pop();
     // Include bonus
     let roll = new Roll(parts.join("+"), data);
